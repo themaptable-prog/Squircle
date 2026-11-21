@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f6f6ee">
-<title>Squircle v0.01</title>
+<title>Squircle v0.02</title>
 <style>
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -114,6 +114,11 @@ legend {font-weight:730;font-size:.88rem;padding:0;margin-bottom:7px;color:var(-
 .range-field span {display:flex;gap:5px;justify-content:space-between;align-items:center}
 .range-field input {accent-color:var(--accent);width:100%;height:22px;margin:0}
 .range-field output {color:var(--accent);font-variant-numeric:tabular-nums}
+.retry-setting {display:flex;align-items:flex-start;gap:9px;color:var(--text);font-size:.88rem;cursor:pointer}
+.retry-setting input {accent-color:var(--accent);width:17px;height:17px;flex:none;margin:2px 0 0}
+.retry-label {display:block;font-weight:750}
+.retry-help {display:block;color:var(--muted);font-size:.81rem;margin-top:2px;line-height:1.35}
+.retry-setting input:not(:checked) + span .retry-help {display:none}
 .board-column {min-width:0}
 .board {min-height:620px;height:calc(100svh - 176px);max-height:900px;border:1px solid var(--line);border-radius:25px;position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;color:var(--board-text);box-shadow:0 16px 40px -28px #10142c3d}
 .scene.studio {background:#fefefa}
@@ -153,6 +158,11 @@ legend {font-weight:730;font-size:.88rem;padding:0;margin-bottom:7px;color:var(-
 #ink {cursor:crosshair;outline:none}
 #overlay {pointer-events:none}
 [data-state="result"] #ink,[data-state="replay"] #ink,[data-state="menu"] #ink {cursor:default}
+.quick-result {position:absolute;z-index:2;top:max(13px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:clamp(7px,2.5vw,14px);width:max-content;max-width:calc(100% - 20px);padding:7px 9px 7px 13px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--text);box-shadow:0 7px 23px #15112922}
+#quickScore {color:var(--accent);font-size:clamp(1.45rem,7vw,2.2rem);font-weight:850;letter-spacing:-.08em;font-variant-numeric:tabular-nums}
+.quick-result > div {display:grid;gap:2px;line-height:1.16;font-size:.94rem}
+#quickTry {font-size:.75rem;color:var(--muted)}
+.quick-result button {flex:none;padding-inline:10px}
 .multi-actions {display:flex;align-items:center;gap:7px;position:absolute;z-index:2;right:max(9px,env(safe-area-inset-right));top:50%;transform:translateY(-50%)}
 .multi-actions button {width:45px;height:46px;padding:0;box-shadow:0 4px 18px #0002}
 .restart-icon {font-size:29px;font-weight:550;line-height:1}
@@ -249,7 +259,7 @@ dialog::backdrop {background:#17132984}
 <body data-theme="studio" data-state="setup">
 <div id="setup" class="setup">
   <header class="masthead">
-    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.01</span></div>
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.02</span></div>
     <div class="top-actions">
       <button type="button" class="sound icon-button" aria-label="Mute sound" title="Sound"></button>
       <button type="button" class="history-button quiet"><span class="clock-icon" aria-hidden="true"></span> Results</button>
@@ -280,13 +290,18 @@ dialog::backdrop {background:#17132984}
     <canvas id="ink" aria-label="Freehand drawing area" tabindex="0"></canvas>
     <canvas id="overlay" aria-hidden="true"></canvas>
   </div>
+  <div id="quickResultCard" class="quick-result" hidden>
+    <strong id="quickScore"></strong>
+    <div><strong id="quickHeadline"></strong><span id="quickTry" hidden></span></div>
+    <button type="button" id="holdScore" class="quiet">Review</button>
+  </div>
   <div id="multiActions" class="multi-actions" hidden>
     <button type="button" id="restart" title="Clear drawing" aria-label="Clear drawing"><span class="restart-icon" aria-hidden="true">↻</span></button>
     <button type="button" id="openMenu" title="Open menu" aria-label="Open drawing menu"><span class="side-triangle" aria-hidden="true"></span></button>
   </div>
   <aside id="drawer" class="drawer" aria-labelledby="drawerHeading" hidden>
     <div class="drawer-top">
-      <div class="brand small"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.01</span></div>
+      <div class="brand small"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.02</span></div>
       <button type="button" id="drawerClose" class="quiet icon-button close" title="Close menu" aria-label="Close menu">×</button>
     </div>
     <section id="scoreCard" class="score-card" hidden>
@@ -340,6 +355,10 @@ dialog::backdrop {background:#17132984}
       <legend>Multi-stroke settings</legend>
       <label class="field range-field"><span>Finish at <output data-output="multiTarget"></output></span><input data-key="multiTarget" aria-label="Multi-stroke finish score" type="range" min="50" max="100" step="1"></label>
     </fieldset>
+    <label class="retry-setting">
+      <input data-key="autoRetry" type="checkbox" checked>
+      <span><span class="retry-label">Auto retry</span><span class="retry-help">Tap the blank pad after a retry to review your score.</span></span>
+    </label>
     <fieldset class="style-picker"><legend>Drawing scene</legend><div class="style-grid"></div></fieldset>
     <fieldset class="width-picker"><legend>Pen thickness</legend><div class="width-buttons"></div></fieldset>
     <div class="pen-settings">
@@ -574,16 +593,30 @@ function inkBounds(strokes, fit = null) {
 }
 
 const audioProfiles = {
-  studio:{type:'sine', base:137, texture:1050, oscillator:.22, notes:[0,3,7], root:261.63},
-  paper:{type:'triangle', base:107, texture:770, oscillator:.14, notes:[0,4,9], root:220},
-  neon:{type:'triangle', base:204, texture:2800, oscillator:.85, notes:[0,5,10], root:293.66},
-  magic:{type:'sine', base:314, texture:4180, oscillator:.72, notes:[0,4,11], root:329.63},
-  draft:{type:'sine', base:166, texture:1550, oscillator:.16, notes:[0,2,7], root:246.94},
-  slate:{type:'sine', base:94, texture:590, oscillator:.08, notes:[0,4,7], root:196}
+  studio:{type:'sine', notes:[0,3,7], root:261.63,
+    brush:{frequency:2250, tone:null, spacing:18, interval:.165, duration:.043, gain:.10}},
+  paper:{type:'triangle', notes:[0,4,9], root:220,
+    brush:{frequency:1100, tone:null, spacing:22, interval:.19, duration:.064, gain:.095}},
+  neon:{type:'triangle', notes:[0,5,10], root:293.66,
+    brush:{frequency:587, tone:'triangle', spacing:20, interval:.18, duration:.051, gain:.039}},
+  magic:{type:'sine', notes:[0,4,11], root:329.63,
+    brush:{frequency:740, tone:'sine', spacing:22, interval:.20, duration:.078, gain:.040}},
+  draft:{type:'sine', notes:[0,2,7], root:246.94,
+    brush:{frequency:3200, tone:null, spacing:17, interval:.16, duration:.038, gain:.115}},
+  slate:{type:'sine', notes:[0,4,7], root:196,
+    brush:{frequency:740, tone:null, spacing:20, interval:.19, duration:.067, gain:.125}}
 };
+const brushNotes = [0, 7, 4, 12, 9];
 
 class Sound {
-  constructor() { this.context = null; this.voice = null; this.enabled = true; }
+  constructor() {
+    this.context = null;
+    this.stroke = null;
+    this.brushVoice = null;
+    this.resultBus = null;
+    this.lastBrushAt = -Infinity;
+    this.enabled = true;
+  }
 
   unlock() {
     if (!this.enabled) return;
@@ -596,72 +629,103 @@ class Sound {
         this.output = this.context.createGain();
         this.output.connect(this.context.destination);
       }
-    } catch { this.context = null; }
+    } catch { this.context = null; this.output = null; }
   }
 
   enable(enabled) {
     this.enabled = enabled;
     if (enabled) this.unlock();
-    if (this.output) this.output.gain.setTargetAtTime(enabled ? 1 : 0, this.context.currentTime, .02);
-    if (!enabled) this.end();
+    if (this.output) this.output.gain.setTargetAtTime(enabled ? 1 : 0, this.context.currentTime, .016);
+    if (!enabled) {
+      this.end();
+      this.cancelResult();
+    }
   }
 
   begin(pen) {
     this.end();
     this.unlock();
-    if (!this.context || !this.enabled) return;
-    const ac = this.context, profile = audioProfiles[pen], now = ac.currentTime;
-    if (!this.noise) {
-      this.noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
-      const data = this.noise.getChannelData(0);
-      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    }
-    const scrape = ac.createBufferSource();
-    scrape.buffer = this.noise;
-    scrape.loop = true;
-    const filter = ac.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = profile.texture;
-    filter.Q.value = .68;
-    const scrapeGain = ac.createGain();
-    scrapeGain.gain.value = .48;
-    const tone = ac.createOscillator();
-    tone.type = profile.type;
-    tone.frequency.value = profile.base;
-    const toneGain = ac.createGain();
-    toneGain.gain.value = profile.oscillator;
-    const volume = ac.createGain();
-    volume.gain.value = .0001;
-    scrape.connect(filter).connect(scrapeGain).connect(volume);
-    tone.connect(toneGain).connect(volume).connect(this.output);
-    scrape.start(now); tone.start(now);
-    this.voice = {scrape,tone,volume,profile};
+    if (this.enabled && this.context) this.stroke = {brush:audioProfiles[pen].brush, travel:0, notes:0};
   }
 
-  move(speed) {
-    if (!this.voice) return;
-    const now = this.context.currentTime;
-    const energy = clamp(speed, 0, 1.3);
-    const {volume, tone, profile} = this.voice;
-    volume.gain.cancelScheduledValues(now);
-    volume.gain.setTargetAtTime(.012 + .05 * energy, now, .028);
-    volume.gain.setTargetAtTime(.0001, now + .1, .06);
-    tone.frequency.setTargetAtTime(profile.base * (1 + .42 * energy), now, .035);
+  move(pixels) {
+    if (!this.stroke) return;
+    const ac = this.context, now = ac.currentTime, stroke = this.stroke;
+    const {brush} = stroke;
+    stroke.travel += pixels;
+    if (stroke.travel < (stroke.notes ? brush.spacing : 8) || now - this.lastBrushAt < brush.interval) return;
+    this.lastBrushAt = now;
+    stroke.travel = 0;
+
+    const volume = ac.createGain();
+    volume.gain.setValueAtTime(.0001, now);
+    volume.gain.exponentialRampToValueAtTime(brush.gain, now + .007);
+    volume.gain.exponentialRampToValueAtTime(.0001, now + brush.duration);
+    volume.connect(this.output);
+    let source, filter = null;
+    if (brush.tone) {
+      source = ac.createOscillator();
+      source.type = brush.tone;
+      const delta = brushNotes[stroke.notes % brushNotes.length];
+      const f = brush.frequency * 2 ** (delta / 12);
+      source.frequency.setValueAtTime(f, now);
+      source.frequency.exponentialRampToValueAtTime(f * 1.035, now + brush.duration);
+      source.connect(volume);
+      source.start(now);
+      source.stop(now + brush.duration + .008);
+    } else {
+      if (!this.noise) {
+        this.noise = ac.createBuffer(1, Math.ceil(ac.sampleRate*.15), ac.sampleRate);
+        const data = this.noise.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = Math.random()*2 - 1;
+      }
+      source = ac.createBufferSource();
+      source.buffer = this.noise;
+      filter = ac.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = brush.frequency * (0.92 + .16 * Math.random());
+      filter.Q.value = .82;
+      source.connect(filter).connect(volume);
+      const length = brush.duration + .008;
+      source.start(now,Math.random()*(this.noise.duration-length),length);
+    }
+    stroke.notes++;
+    this.brushVoice = volume;
+    source.onended = () => {
+      source.disconnect();
+      filter?.disconnect();
+      volume.disconnect();
+      if (this.brushVoice === volume) this.brushVoice = null;
+    };
+  }
+
+  fade(volume) {
+    if (!volume || !this.context) return;
+    const {gain} = volume, now = this.context.currentTime;
+    if (gain.cancelAndHoldAtTime) gain.cancelAndHoldAtTime(now);
+    else gain.cancelScheduledValues(now);
+    gain.setTargetAtTime(.0001, now, .012);
   }
 
   end() {
-    if (!this.voice) return;
-    const now = this.context.currentTime;
-    const {volume, tone, scrape} = this.voice;
-    volume.gain.cancelScheduledValues(now);
-    volume.gain.setTargetAtTime(.0001, now, .026);
-    tone.stop(now + .15); scrape.stop(now + .15);
-    this.voice = null;
+    this.stroke = null;
+    this.fade(this.brushVoice);
+    this.brushVoice = null;
   }
 
-  result(pen, kind) {
+  cancelResult() {
+    this.fade(this.resultBus);
+    this.resultBus = null;
+  }
+
+  result(pen, kind, quick = false) {
     if (!this.context || !this.enabled) return;
-    const ac = this.context, now = ac.currentTime + .035, profile = audioProfiles[pen];
+    this.cancelResult();
+    const ac = this.context, now = ac.currentTime + .012, profile = audioProfiles[pen];
+    const bus = ac.createGain();
+    bus.connect(this.output);
+    this.resultBus = bus;
+    let playing = 0;
     const note = (interval, time, length, strength, up = 0) => {
       const osc = ac.createOscillator(), volume = ac.createGain();
       const f = profile.root * 2 ** (interval / 12);
@@ -669,21 +733,34 @@ class Sound {
       osc.frequency.setValueAtTime(f, now + time);
       if (up) osc.frequency.exponentialRampToValueAtTime(f * up, now + time + length * .73);
       volume.gain.setValueAtTime(.0001, now + time);
-      volume.gain.exponentialRampToValueAtTime(strength, now + time + Math.min(.12, length*.22));
+      volume.gain.exponentialRampToValueAtTime(strength, now + time + Math.min(.105,length*.25));
       volume.gain.exponentialRampToValueAtTime(.0001, now + time + length);
-      osc.connect(volume).connect(this.output);
+      osc.connect(volume).connect(bus);
+      playing++;
+      osc.onended = () => {
+        osc.disconnect();
+        volume.disconnect();
+        if (--playing === 0) {
+          bus.disconnect();
+          if (this.resultBus === bus) this.resultBus = null;
+        }
+      };
       osc.start(now + time);
-      osc.stop(now + time + length + .02);
+      osc.stop(now + time + length + .008);
     };
     const [a,b,c] = profile.notes;
     if (kind === 'perfect') {
-      [a,b,c,12,19].forEach((interval,i) => note(interval,.075*i,.33,.052));
-      [0,7,12].forEach(interval => note(interval,.3,.73,.036,1.015));
-      note(24,.44,.55,.026,1.045);
+      [a,b,c,12,19].forEach((interval,i) => note(interval,.075*i,.30,.048));
+      [0,7,12].forEach(interval => note(interval,.3,.65,.034,1.015));
+      note(24,.44,.52,.025,1.045);
     } else if (kind === 'close') {
-      note(a,0,.54,.048,1.13); note(b,.09,.59,.036,1.09); note(c,.18,.64,.036,1.12);
+      const beat = quick ? .04 : .082, length = quick ? .155 : .53;
+      note(a,0,length,.045,1.13);
+      note(b,beat,length,.035,1.09);
+      note(c,2*beat,length,.033,1.12);
     } else {
-      note(b,0,.25,.047); note(a,.12,.36,.04);
+      note(b,0,.104,.044);
+      note(a,.073,quick ? .145 : .25,.039);
     }
   }
 }
@@ -695,8 +772,9 @@ const historyDialog = $('history'), sound = new Sound();
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const defaults = {
   shape:'circle', mode:'single', scene:'studio', pen:'studio', width:0,
-  attempts:3, practiceTarget:50, multiTarget:85, sound:true
+  attempts:3, practiceTarget:50, multiTarget:85, sound:true, autoRetry:true
 };
+const retryDelay = score => score >= 97 ? 1200 : 300;
 const modeNames = {single:'One stroke', practice:'Practice', multi:'Multi-stroke'};
 const prefKey = 'squircle.settings.v1', historyKey = 'squircle.results.v1';
 function load(key, fallback) {
@@ -718,6 +796,7 @@ let historyOrder = 'last', memoryOnly = false;
 sound.enabled = pref.sound;
 
 let state = 'setup', round = null, completed = null, playback = null, restoreAfterReplay = null;
+let quickResult = false, retryTimer = null;
 let menuReturn = 'drawing', dismissed = false, active = null, comparison = true, idleControls = false;
 let frame = 0, viewport = null, mapping = null, previousState = null;
 let particles = [], magicQueue = [], celebrationUntil = 0;
@@ -768,7 +847,10 @@ function mountSettings(host) {
   host.addEventListener('input', event => {
     const key = event.target.dataset.key;
     if (!key) return;
-    pref[key] = ['attempts','practiceTarget','multiTarget'].includes(key) ? Number(event.target.value) : event.target.value;
+    const {type, value, checked} = event.target;
+    if (type === 'checkbox') pref[key] = checked;
+    else if (['attempts','practiceTarget','multiTarget'].includes(key)) pref[key] = Number(value);
+    else pref[key] = value;
     savePref();
     renderSettings();
   });
@@ -792,7 +874,7 @@ function drawIcon(canvas, shape) {
 }
 
 function renderSettings() {
-  const scene = state === 'setup' ? pref.scene : state === 'replay' ? playback.record.scene : round.scene;
+  const scene = state === 'setup' ? pref.scene : currentScene().scene;
   document.body.dataset.theme = scene;
   $('practiceBoard').className = 'board scene ' + pref.scene;
   $('surface').className = 'surface scene ' + scene;
@@ -806,7 +888,9 @@ function renderSettings() {
     multi:'Use as many strokes as you need to finish the shape.'
   }[pref.mode];
   for (const field of document.querySelectorAll('[data-key]')) {
-    if (field.value !== String(pref[field.dataset.key])) field.value = pref[field.dataset.key];
+    const value = pref[field.dataset.key];
+    if (field.type === 'checkbox') field.checked = value;
+    else if (field.value !== String(value)) field.value = value;
   }
   for (const output of document.querySelectorAll('[data-output]')) output.textContent = pref[output.dataset.output] + '%';
   for (const section of document.querySelectorAll('.practice-settings')) section.hidden = pref.mode !== 'practice';
@@ -1012,7 +1096,7 @@ function redraw() {
   if (!record) return;
   const strokes = record.strokes;
   const nominal = Math.min(viewport.w,viewport.h);
-  const layoutFit = state === 'result' || state === 'replay';
+  const layoutFit = (state === 'result' && !quickResult) || state === 'replay';
   mapping = layoutFit && strokes.length
     ? fitMapping(strokes,record.fit,visibleRegion(),nominal*1.32)
     : fullMapping(viewport.w,viewport.h);
@@ -1096,7 +1180,9 @@ function updateScreen(focus = true) {
   setup.hidden = state !== 'setup';
   game.hidden = state === 'setup';
   const result = state === 'result', paused = state === 'menu';
-  drawer.hidden = !((result && !dismissed) || paused);
+  const quick = result && quickResult;
+  $('quickResultCard').hidden = !quick;
+  drawer.hidden = !((result && !dismissed && !quick) || paused);
   $('scoreCard').hidden = !result;
   $('pauseCard').hidden = !paused;
   drawer.setAttribute('aria-labelledby', paused ? 'pauseHeading' : 'drawerHeading');
@@ -1118,6 +1204,7 @@ function updateScreen(focus = true) {
   previousState = state;
   if (focus) {
     if (state === 'setup') $('start').focus({preventScroll:true});
+    else if (quick) $('holdScore').focus({preventScroll:true});
     else if (result && !dismissed) $('drawerHeading').focus({preventScroll:true});
     else if (result) $('openMenu').focus({preventScroll:true});
     else if (paused) $('pauseHeading').focus({preventScroll:true});
@@ -1126,20 +1213,28 @@ function updateScreen(focus = true) {
   }
 }
 
-function newRound() {
+function cancelRetry() {
+  if (retryTimer !== null) clearTimeout(retryTimer);
+  retryTimer = null;
+  quickResult = false;
+}
+function newRound(retryCount = 1, keepReview = false) {
+  cancelRetry();
   sound.end();
-  sound.unlock();
-  round = {...pref, strokes:[], count:1, started:null};
-  completed = null; playback = null;
+  round = {...pref, strokes:[], count:retryCount, started:null};
+  if (!keepReview) completed = null;
+  playback = null;
   active = null; idleControls = false; dismissed = false; comparison = true;
   $('showComparison').checked = true;
   particles = []; magicQueue = []; celebrationUntil = 0;
   state = 'drawing';
   updateScreen();
-  $('announcer').textContent = 'Draw a ' + shapeNames[round.shape].toLowerCase() + '.';
+  if (!keepReview) $('announcer').textContent = 'Draw a ' + shapeNames[round.shape].toLowerCase() + '.';
 }
 function returnHome() {
+  cancelRetry();
   sound.end();
+  sound.cancelResult();
   active = null; particles = []; magicQueue = []; celebrationUntil = 0;
   state = 'setup';
   updateScreen();
@@ -1206,7 +1301,7 @@ function addPoint(event, force = false) {
     active.lastSpark = active.progress;
     requestFrame();
   }
-  sound.move(step*mapping.scale / (Math.max(3,point[2]-prior[2])*.72));
+  sound.move(step*mapping.scale);
 }
 function pointerMove(event) {
   if (state !== 'drawing' || event.pointerId !== active?.id) return;
@@ -1224,6 +1319,10 @@ function pointerEnd(event, canceled = false) {
   if (canceled || progress*mapping.scale < 3) {
     round.strokes.pop();
     if (!round.strokes.length) round.started = null;
+    if (!canceled && !round.strokes.length && completed) {
+      holdResult();
+      return;
+    }
     $('multiActions').hidden = !idleControls;
     redraw();
     return;
@@ -1238,13 +1337,6 @@ function pointerEnd(event, canceled = false) {
   }
   const record = makeRecord(result,ms);
   storeRecord(record);
-  if (round.mode === 'practice' && result.score < round.practiceTarget && round.count < round.attempts) {
-    sound.result(round.pen,resultKind(record));
-    const count = ++round.count;
-    clearAttempt();
-    $('announcer').textContent = record.score + ' percent. Try ' + count + ' of ' + round.attempts + '.';
-    return;
-  }
   showResult(record);
 }
 
@@ -1292,30 +1384,58 @@ function resultKind(record) {
   if (record.score === 100) return 'perfect';
   return record.score >= 85 ? 'close' : 'accept';
 }
-function showResult(record) {
-  completed = {...record,strokes:round.strokes};
+function hasPracticeRetry(record) {
+  return record.mode === 'practice' && record.score < record.target && record.attempt < record.allowed;
+}
+function advanceResult() {
+  const sameChallenge = ['shape','mode','scene','pen','width','attempts','practiceTarget']
+    .every(key => round[key] === pref[key]);
+  const nextTry = sameChallenge && hasPracticeRetry(completed) ? completed.attempt+1 : 1;
+  newRound(nextTry,true);
+}
+function presentResult() {
+  const record = completed;
   const kind = resultKind(record);
   state = 'result'; dismissed = false; comparison = true;
   $('showComparison').checked = true;
   $('scoreBadge').textContent = shapeNames[record.shape] + ' · ' + modeNames[record.mode];
-  $('scoreValue').textContent = record.score + '%';
-  $('drawerHeading').textContent = {
+  $('quickScore').textContent = $('scoreValue').textContent = record.score + '%';
+  $('quickHeadline').textContent = $('drawerHeading').textContent = {
     perfect:'Perfect shape!', close:'So close!', accept:'Good try!'
   }[kind];
   $('rawScore').textContent = record.raw.toFixed(2) + '% raw match';
   $('elapsed').textContent = timeLabel(record.ms);
-  $('attemptLabel').hidden = !record.attempt;
+  $('quickTry').hidden = $('attemptLabel').hidden = !record.attempt;
   if (record.attempt) {
+    $('quickTry').textContent = record.score >= record.target ? 'Target reached' :
+      'Try ' + record.attempt + ' of ' + record.allowed;
     $('attemptLabel').textContent = 'Try ' + record.attempt + ' of ' + record.allowed + ' · ' +
       (record.score >= record.target ? 'Target reached' : record.target + '% target');
   }
+  $('again').textContent = hasPracticeRetry(record) ? 'Next try' : 'Draw again';
   if (innerWidth <= 640) $('drawerDetails').open = false;
   else $('drawerDetails').open = true;
   drawer.scrollTop = 0;
   updateScreen();
-  $('announcer').textContent = record.score + ' percent. ' + $('drawerHeading').textContent;
-  sound.result(record.pen,kind);
+  const next = quickResult && hasPracticeRetry(record) ? ' Next is try ' + (record.attempt+1) + ' of ' + record.allowed + '.' : '';
+  $('announcer').textContent = record.score + ' percent. ' + $('drawerHeading').textContent + next;
+}
+function holdResult() {
+  cancelRetry();
+  particles = []; magicQueue = []; celebrationUntil = 0;
+  presentResult();
+}
+function showResult(record) {
+  completed = {...record,strokes:round.strokes};
+  quickResult = pref.autoRetry && !document.hidden;
+  presentResult();
+  const kind = resultKind(record);
+  sound.result(record.pen,kind,quickResult && record.score < 97);
   if (kind === 'perfect') celebrate();
+  if (quickResult) retryTimer = setTimeout(() => {
+    if (document.hidden) holdResult();
+    else advanceResult();
+  },retryDelay(record.score));
 }
 
 function renderHistory() {
@@ -1357,7 +1477,9 @@ function showHistory() {
   if (!historyDialog.open) historyDialog.showModal();
 }
 function startReplay(record, fromList) {
+  cancelRetry();
   sound.end();
+  sound.cancelResult();
   sound.unlock();
   restoreAfterReplay = {state, fromList, dismissed, comparison, id:record.id};
   if (historyDialog.open) historyDialog.close();
@@ -1389,7 +1511,7 @@ function paintReplay(until, audible) {
         sound.begin(record.pen);
         playback.voiceStroke = playback.stroke;
       }
-      sound.move(step*mapping.scale / (Math.max(3,b[2]-a[2])*.72));
+      sound.move(step*mapping.scale);
       if ((record.pen === 'neon' || record.pen === 'magic') && playback.point % 4 === 0) {
         sparkle(b,record.pen,playback.progress,performance.now());
       }
@@ -1411,6 +1533,7 @@ function finishReplay() {
 }
 function toggleReplay() {
   if (playback.done) {
+    sound.cancelResult();
     playback.at = 0;
     playback.done = false;
     playback.paused = false;
@@ -1432,6 +1555,7 @@ function toggleReplay() {
 function exitReplay() {
   if (state !== 'replay') return;
   sound.end();
+  sound.cancelResult();
   const saved = restoreAfterReplay;
   state = saved.state; dismissed = saved.dismissed; comparison = saved.comparison;
   playback = null; restoreAfterReplay = null; particles = [];
@@ -1445,12 +1569,16 @@ function exitReplay() {
   }
 }
 
-$('start').addEventListener('click',newRound);
-$('again').addEventListener('click',newRound);
+$('start').addEventListener('click',() => {
+  sound.unlock();
+  newRound();
+});
+$('again').addEventListener('click',advanceResult);
+$('holdScore').addEventListener('click',holdResult);
 $('home').addEventListener('click',returnHome);
 $('restart').addEventListener('click',clearAttempt);
 $('resume').addEventListener('click',resumeDrawing);
-$('clearFromMenu').addEventListener('click',newRound);
+$('clearFromMenu').addEventListener('click',() => newRound());
 $('openMenu').addEventListener('click',() => {
   if (state === 'result') { dismissed = false; updateScreen(); }
   else pauseDrawing();
@@ -1490,14 +1618,18 @@ addEventListener('resize',resizeCanvas);
 new ResizeObserver(() => { if (state === 'result' && !drawer.hidden) resizeCanvas(); }).observe(drawer);
 addEventListener('keydown',event => {
   if (event.key !== 'Escape' || historyDialog.open) return;
-  if (state === 'drawing') pauseDrawing();
+  if (state === 'drawing' && !active && !round.strokes.length && completed) holdResult();
+  else if (state === 'drawing') pauseDrawing();
   else if (state === 'menu') resumeDrawing();
+  else if (quickResult) holdResult();
   else if (state === 'result') { dismissed = !dismissed; updateScreen(); }
   else if (state === 'replay') exitReplay();
 });
 document.addEventListener('visibilitychange',() => {
   if (!document.hidden) return;
   sound.end();
+  sound.cancelResult();
+  if (quickResult) holdResult();
   if (state === 'replay' && !playback.paused && !playback.done) toggleReplay();
 });
 updateScreen(false);
