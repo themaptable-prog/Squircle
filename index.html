@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f6f6ee">
-<title>Squircle v0.02</title>
+<title>Squircle v0.03</title>
 <style>
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -120,7 +120,7 @@ legend {font-weight:730;font-size:.88rem;padding:0;margin-bottom:7px;color:var(-
 .retry-help {display:block;color:var(--muted);font-size:.81rem;margin-top:2px;line-height:1.35}
 .retry-setting input:not(:checked) + span .retry-help {display:none}
 .board-column {min-width:0}
-.board {min-height:620px;height:calc(100svh - 176px);max-height:900px;border:1px solid var(--line);border-radius:25px;position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;color:var(--board-text);box-shadow:0 16px 40px -28px #10142c3d}
+.board {min-height:620px;height:calc(100svh - 176px);max-height:900px;border:1px solid var(--line);border-radius:25px;position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;color:var(--board-text);box-shadow:0 16px 40px -28px #10142c3d;cursor:crosshair;touch-action:none}
 .scene.studio {background:#fefefa}
 .scene.paper {background-color:#f6e7c8;background-image:radial-gradient(ellipse at 43% 37%,#fff7e288,transparent 68%),url("data:image/webp;base64,UklGRigDAABXRUJQVlA4IBwDAADQEgCdASq0ALQAPplEnk0loyMiohHJ8LATCWlrt726Zf/715oiWUP//hpz7qFtItNVQpbP3kAGYJUN/GKSdgKMJBGrgx+kdVgyxHjlBIFRRa3lU4te9JIZa2XAtYC40Yf24XJqHd1MeRV4/HBBNUIJp8kVw/g9kSmD1ryLR9FQLbckevfcKOopqMIZbK/07q2uObSEBulZ5gxfhCnxYkAA/vQvnfrjHthJ+FmzOv8dpytbP2gwmHggNhs9xiS2Lox9eH+15Yu/Z7MG283yLwl+9xDHWjtqFMRtX28S0UpfpzXR9DR6l2sQ3H5Uzv1Qnu+f2jGNYTfVia+hYQKwR6N5hIbvI95Qw5qhyP+fU23b0pYMoQDl1kgVx62GtHWsLMBqGZnJ+TBikKzLFl2Nk+BmUJEsmgukH1/Dj7CCHhANyRI0evewMT3mUOSij+iWZWsYAhSy/iqGQnjCqnZLmcv/1rwi+s5wGTYooprLcu6QCRYf8aLRvmQ6RwVi93HbCPC9e3bpKltDxKYE5rHxsL4+wrEx10jwl68q7jBNeDMxWwHbq7Bl9q2Zlu6xlVARtllTD2UITaUBH1wmo+kBKpZtRRXMEe0PwQVhklOicTt169N8CUL1bLaQTZFWWL6EPj7vQofiNY9jEiRAum1CC5wA+vGDNZHuvcsY61afeMr7UKAFiWMKUzzhIc5QdBZJkF1L8GTwa+A8yJT6fY9RTOj3AbolXiGhXxRKjgvB2G7pAWq3kqRaZiqBLJyhsi53HsQXG2ktSaAm++891Ro1mPYJJOvodfhVMlT1xUuhQeFU4RRHj/vk4vGS28LD4UF7EIJdBAjnOaJbJKRpsLpLKCtxEgYFFYIFP+WArCFDuBrlujjo3DRZ0z1U4X3powbkszShjq7JR8vjD1WncUOirmh3MUj6eR/mOY4qz4qKfAhz61tASK/0llkh+HynovF+YQ6rBPAiAkKTwtciQnxwcDMG0Kp/pukpI4nR/wOipWZNN6lmTxx2FrRtXeAFc97acZ4L9+1vKtbjH1422ao4HAmwuTsmDuo9xbujHAAA");background-size:auto,180px 180px}
 .scene.neon {background:#111020 radial-gradient(ellipse at 46% 43%,#24204a 0%,#15142c 57%,#0d0c1a 90%)}
@@ -143,6 +143,8 @@ legend {font-weight:730;font-size:.88rem;padding:0;margin-bottom:7px;color:var(-
 .corner-bl {bottom:20px;left:20px;border-width:0 0 1px 1px}
 .corner-br {bottom:20px;right:20px;border-width:0 1px 1px 0}
 .board-inner {display:grid;justify-items:center;gap:13px;width:100%;padding:27px 20px 36px}
+#setupGuide {position:absolute;inset:0 0 91px;width:100%;height:calc(100% - 91px);pointer-events:none}
+.board[data-training] .board-inner {position:absolute;bottom:0;padding:0 14px 9px;gap:6px}
 #doodle {width:min(78%,365px);height:auto;display:block;margin:0 0 8px}
 .start-button {min-height:55px;padding:0 27px;border-radius:14px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 45%,#1b1c2e);font-size:1.08rem}
 .start-button:active {transform:translateY(3px);box-shadow:0 2px 0 color-mix(in srgb,var(--accent) 45%,#1b1c2e)}
@@ -156,13 +158,19 @@ legend {font-weight:730;font-size:.88rem;padding:0;margin-bottom:7px;color:var(-
 .surface {position:absolute;inset:0;overflow:hidden}
 .surface canvas {position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #ink {cursor:crosshair;outline:none}
-#overlay {pointer-events:none}
+#overlay,#guideCanvas {pointer-events:none}
 [data-state="result"] #ink,[data-state="replay"] #ink,[data-state="menu"] #ink {cursor:default}
-.quick-result {position:absolute;z-index:2;top:max(13px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:clamp(7px,2.5vw,14px);width:max-content;max-width:calc(100% - 20px);padding:7px 9px 7px 13px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--text);box-shadow:0 7px 23px #15112922}
+.quick-result {position:absolute;z-index:2;top:max(13px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:clamp(7px,2.5vw,14px);width:max-content;max-width:calc(100% - 128px);padding:7px 9px 7px 13px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--text);box-shadow:0 7px 23px #15112922;pointer-events:none}
 #quickScore {color:var(--accent);font-size:clamp(1.45rem,7vw,2.2rem);font-weight:850;letter-spacing:-.08em;font-variant-numeric:tabular-nums}
 .quick-result > div {display:grid;gap:2px;line-height:1.16;font-size:.94rem}
 #quickTry {font-size:.75rem;color:var(--muted)}
-.quick-result button {flex:none;padding-inline:10px}
+.quick-result button {flex:none;padding-inline:10px;pointer-events:auto}
+.last-result {position:absolute;z-index:2;top:max(13px,env(safe-area-inset-top));right:max(9px,env(safe-area-inset-right));min-height:44px;box-shadow:0 4px 18px #0002}
+.score-icon {display:block;position:relative;width:16px;height:19px;border:1.6px solid currentColor;border-radius:3px}
+.score-icon::after {content:"";position:absolute;top:4px;left:3px;width:7px;height:1.5px;border-radius:1px;background:currentColor;box-shadow:0 3.5px 0 currentColor,0 7px 0 currentColor}
+@media(max-width:460px) {
+  .quick-result {left:max(9px,env(safe-area-inset-left));transform:none;max-width:calc(100% - max(9px,env(safe-area-inset-left)) - max(9px,env(safe-area-inset-right)) - 50px)}
+}
 .multi-actions {display:flex;align-items:center;gap:7px;position:absolute;z-index:2;right:max(9px,env(safe-area-inset-right));top:50%;transform:translateY(-50%)}
 .multi-actions button {width:45px;height:46px;padding:0;box-shadow:0 4px 18px #0002}
 .restart-icon {font-size:29px;font-weight:550;line-height:1}
@@ -259,7 +267,7 @@ dialog::backdrop {background:#17132984}
 <body data-theme="studio" data-state="setup">
 <div id="setup" class="setup">
   <header class="masthead">
-    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.02</span></div>
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.03</span></div>
     <div class="top-actions">
       <button type="button" class="sound icon-button" aria-label="Mute sound" title="Sound"></button>
       <button type="button" class="history-button quiet"><span class="clock-icon" aria-hidden="true"></span> Results</button>
@@ -274,6 +282,7 @@ dialog::backdrop {background:#17132984}
     <div class="board-column">
       <section id="practiceBoard" class="board scene studio" aria-label="Drawing pad">
         <div class="corner corner-tl"></div><div class="corner corner-tr"></div><div class="corner corner-bl"></div><div class="corner corner-br"></div>
+        <canvas id="setupGuide" aria-hidden="true" hidden></canvas>
         <div class="board-inner">
           <canvas id="doodle" width="700" height="414" aria-hidden="true"></canvas>
           <button type="button" id="start" class="primary start-button"><span class="play-icon" aria-hidden="true"></span> Start drawing</button>
@@ -287,6 +296,7 @@ dialog::backdrop {background:#17132984}
 
 <main id="game" hidden aria-label="Drawing game">
   <div id="surface" class="surface scene studio">
+    <canvas id="guideCanvas" aria-hidden="true"></canvas>
     <canvas id="ink" aria-label="Freehand drawing area" tabindex="0"></canvas>
     <canvas id="overlay" aria-hidden="true"></canvas>
   </div>
@@ -295,13 +305,16 @@ dialog::backdrop {background:#17132984}
     <div><strong id="quickHeadline"></strong><span id="quickTry" hidden></span></div>
     <button type="button" id="holdScore" class="quiet">Review</button>
   </div>
+  <button type="button" id="lastResult" class="last-result quiet icon-button" title="Last result" aria-label="Show last result" hidden>
+    <span class="score-icon" aria-hidden="true"></span>
+  </button>
   <div id="multiActions" class="multi-actions" hidden>
     <button type="button" id="restart" title="Clear drawing" aria-label="Clear drawing"><span class="restart-icon" aria-hidden="true">↻</span></button>
     <button type="button" id="openMenu" title="Open menu" aria-label="Open drawing menu"><span class="side-triangle" aria-hidden="true"></span></button>
   </div>
   <aside id="drawer" class="drawer" aria-labelledby="drawerHeading" hidden>
     <div class="drawer-top">
-      <div class="brand small"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.02</span></div>
+      <div class="brand small"><span class="brand-mark" aria-hidden="true"></span><span>Squircle</span><span class="version">v0.03</span></div>
       <button type="button" id="drawerClose" class="quiet icon-button close" title="Close menu" aria-label="Close menu">×</button>
     </div>
     <section id="scoreCard" class="score-card" hidden>
@@ -344,7 +357,7 @@ dialog::backdrop {background:#17132984}
   <div class="settings">
     <div class="select-pair">
       <label class="field"><span>Shape</span><span class="select-wrap has-shape"><span class="shape-icon" aria-hidden="true"></span><select data-key="shape" aria-label="Shape"></select></span></label>
-      <label class="field"><span>Mode</span><span class="select-wrap"><select data-key="mode" aria-label="Mode"><option value="single">One stroke</option><option value="practice">Practice</option><option value="multi">Multi-stroke</option></select></span></label>
+      <label class="field"><span>Mode</span><span class="select-wrap"><select data-key="mode" aria-label="Mode"><option value="single">One stroke</option><option value="practice">Practice</option><option value="multi">Multi-stroke</option><option value="training">Training</option></select></span></label>
     </div>
     <fieldset class="mode-settings practice-settings" hidden>
       <legend>Practice settings</legend>
@@ -355,9 +368,13 @@ dialog::backdrop {background:#17132984}
       <legend>Multi-stroke settings</legend>
       <label class="field range-field"><span>Finish at <output data-output="multiTarget"></output></span><input data-key="multiTarget" aria-label="Multi-stroke finish score" type="range" min="50" max="100" step="1"></label>
     </fieldset>
+    <fieldset class="mode-settings training-settings" hidden>
+      <legend>Training settings</legend>
+      <label class="field range-field"><span>Guide size <output data-output="guideSize"></output></span><input data-key="guideSize" aria-label="Guide size" type="range" min="20" max="85" step="1"></label>
+    </fieldset>
     <label class="retry-setting">
       <input data-key="autoRetry" type="checkbox" checked>
-      <span><span class="retry-label">Auto retry</span><span class="retry-help">Tap the blank pad after a retry to review your score.</span></span>
+      <span><span class="retry-label">Auto retry</span><span class="retry-help">Draw again as soon as the pad clears.</span></span>
     </label>
     <fieldset class="style-picker"><legend>Drawing scene</legend><div class="style-grid"></div></fieldset>
     <fieldset class="width-picker"><legend>Pen thickness</legend><div class="width-buttons"></div></fieldset>
@@ -489,14 +506,16 @@ function circleCenter(samples, initialX, initialY) {
   return [initialX + (c*d-b*e)/det, initialY + (a*e-b*d)/det];
 }
 
-function fitDrawing(strokes, shape) {
-  const segments = strokes.flatMap(path => segmentsFor(path));
-  const total = segments.reduce((sum, s) => sum + s.length, 0);
-  if (!total) return {raw:0, score:0, fit:null, near:false};
-  const bounds = inkBounds(strokes);
-  const span = Math.max(bounds.right - bounds.left, bounds.bottom - bounds.top);
-  const midX = (bounds.left + bounds.right) / 2, midY = (bounds.top + bounds.bottom) / 2;
-  const samples = sampleSegments(segments, total, 112);
+function fitLoss(samples, fit, edges) {
+  let sum = 0;
+  for (const [x,y] of samples) {
+    if (edges) sum += nearestSquared(x,y,edges);
+    else sum += (Math.hypot(x - fit.x,y - fit.y) - fit.r) ** 2;
+  }
+  return sum;
+}
+
+function bestFit(samples, shape, span, midX, midY) {
   const circle = shape === 'circle';
   const period = shape === 'rectangle' ? Math.PI : TAU / sideCounts[shape];
   const minRadius = span * .36, maxRadius = span * .8;
@@ -507,15 +526,7 @@ function fitDrawing(strokes, shape) {
     if (r < minRadius || r > maxRadius || Math.abs(x-midX) > limit || Math.abs(y-midY) > limit) return;
     const fit = {shape, x, y, r, angle};
     const edges = circle ? null : segmentsFor(verticesFor(fit), true);
-    let sum = 0;
-    for (const [px, py] of samples) {
-      if (circle) {
-        const error = Math.hypot(px-x, py-y) - r;
-        sum += error * error;
-      } else {
-        sum += nearestSquared(px, py, edges);
-      }
-    }
+    const sum = fitLoss(samples,fit,edges);
     if (sum < loss) { winner = fit; loss = sum; }
   }
 
@@ -551,7 +562,21 @@ function fitDrawing(strokes, shape) {
     }
   }
 
+  return winner;
+}
+
+function fitDrawing(strokes, shape, guide = null) {
+  const segments = strokes.flatMap(path => segmentsFor(path));
+  const total = segments.reduce((sum, s) => sum + s.length, 0);
+  if (!total) return {raw:0, score:0, fit:null, near:false};
+  const bounds = inkBounds(strokes);
+  const span = Math.max(bounds.right - bounds.left, bounds.bottom - bounds.top);
+  const midX = (bounds.left + bounds.right) / 2, midY = (bounds.top + bounds.bottom) / 2;
+  const samples = sampleSegments(segments, total, 112);
+  const circle = shape === 'circle';
+  const winner = guide || bestFit(samples,shape,span,midX,midY);
   const edges = circle ? null : segmentsFor(verticesFor(winner), true);
+  const loss = fitLoss(samples,winner,edges);
   const perimeter = circle ? TAU * winner.r : edges.reduce((sum, edge) => sum + edge.length, 0);
   const target = circle ? Array.from({length:144}, (_, i) => [
     winner.x + winner.r * Math.cos(TAU * i / 144),
@@ -768,14 +793,16 @@ class Sound {
 const $ = id => document.getElementById(id);
 const setup = $('setup'), game = $('game'), drawer = $('drawer'), ink = $('ink'), overlay = $('overlay');
 const pigment = ink.getContext('2d'), effects = overlay.getContext('2d');
+const guideCanvas = $('guideCanvas'), guideLayer = guideCanvas.getContext('2d');
+const setupGuide = $('setupGuide');
 const historyDialog = $('history'), sound = new Sound();
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const defaults = {
   shape:'circle', mode:'single', scene:'studio', pen:'studio', width:0,
-  attempts:3, practiceTarget:50, multiTarget:85, sound:true, autoRetry:true
+  attempts:3, practiceTarget:50, multiTarget:85, guideSize:55, sound:true, autoRetry:true
 };
 const retryDelay = score => score >= 97 ? 1200 : 300;
-const modeNames = {single:'One stroke', practice:'Practice', multi:'Multi-stroke'};
+const modeNames = {single:'One stroke', practice:'Practice', multi:'Multi-stroke', training:'Training'};
 const prefKey = 'squircle.settings.v1', historyKey = 'squircle.results.v1';
 function load(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
@@ -790,13 +817,15 @@ if (!weights[pref.width]) pref.width = defaults.width;
 pref.attempts = clamp(Number(pref.attempts) || 3, 2, 10);
 pref.practiceTarget = clamp(Number(pref.practiceTarget) || 50, 50, 100);
 pref.multiTarget = clamp(Number(pref.multiTarget) || 85, 50, 100);
+pref.guideSize = clamp(Number(pref.guideSize) || 55,20,85);
 let stored = load(historyKey, []);
 if (!Array.isArray(stored)) stored = [];
 let historyOrder = 'last', memoryOnly = false;
 sound.enabled = pref.sound;
 
 let state = 'setup', round = null, completed = null, playback = null, restoreAfterReplay = null;
-let quickResult = false, retryTimer = null;
+let quickResult = false, retryTimer = null, retryAt = 0;
+let carriedScore = false, scoreLingerTimer = null, reviewingFromPad = false;
 let menuReturn = 'drawing', dismissed = false, active = null, comparison = true, idleControls = false;
 let frame = 0, viewport = null, mapping = null, previousState = null;
 let particles = [], magicQueue = [], celebrationUntil = 0;
@@ -849,7 +878,7 @@ function mountSettings(host) {
     if (!key) return;
     const {type, value, checked} = event.target;
     if (type === 'checkbox') pref[key] = checked;
-    else if (['attempts','practiceTarget','multiTarget'].includes(key)) pref[key] = Number(value);
+    else if (type === 'range' || key === 'attempts') pref[key] = Number(value);
     else pref[key] = value;
     savePref();
     renderSettings();
@@ -877,15 +906,21 @@ function renderSettings() {
   const scene = state === 'setup' ? pref.scene : currentScene().scene;
   document.body.dataset.theme = scene;
   $('practiceBoard').className = 'board scene ' + pref.scene;
+  $('practiceBoard').toggleAttribute('data-training',pref.mode === 'training');
+  setupGuide.hidden = pref.mode !== 'training';
+  $('doodle').hidden = pref.mode === 'training';
   $('surface').className = 'surface scene ' + scene;
+  ink.setAttribute('aria-label',state === 'drawing' && round.guide ?
+    'Trace the ' + shapeNames[round.shape].toLowerCase() + ' guide' : 'Freehand drawing area');
   const challenge = $('challengeWord');
   challenge.textContent = shapeNames[pref.shape].toLowerCase();
   challenge.classList.toggle('long', challenge.textContent.length > 8);
   $('activeStyle').textContent = sceneNames[pref.scene];
   $('boardHint').textContent = {
-    single:'Lift your finger or pen to see your score.',
+    single:'Draw here, then lift your finger or pen to see your score.',
     practice:'You get ' + pref.attempts + ' tries to reach ' + pref.practiceTarget + '%.',
-    multi:'Use as many strokes as you need to finish the shape.'
+    multi:'Use as many strokes as you need to finish the shape.',
+    training:'Trace the outline and see how closely you followed it.'
   }[pref.mode];
   for (const field of document.querySelectorAll('[data-key]')) {
     const value = pref[field.dataset.key];
@@ -895,6 +930,7 @@ function renderSettings() {
   for (const output of document.querySelectorAll('[data-output]')) output.textContent = pref[output.dataset.output] + '%';
   for (const section of document.querySelectorAll('.practice-settings')) section.hidden = pref.mode !== 'practice';
   for (const section of document.querySelectorAll('.multi-settings')) section.hidden = pref.mode !== 'multi';
+  for (const section of document.querySelectorAll('.training-settings')) section.hidden = pref.mode !== 'training';
   for (const button of document.querySelectorAll('[data-scene]')) button.setAttribute('aria-pressed',button.dataset.scene === pref.scene);
   for (const button of document.querySelectorAll('[data-width]')) button.setAttribute('aria-pressed',Number(button.dataset.width) === pref.width);
   for (const slot of document.querySelectorAll('.shape-icon')) {
@@ -911,7 +947,10 @@ function renderSettings() {
     button.setAttribute('aria-pressed', !pref.sound);
     button.setAttribute('aria-label',pref.sound ? 'Mute sound' : 'Turn on sound');
   }
-  if (state === 'setup') drawDoodle();
+  if (state === 'setup') {
+    if (pref.mode === 'training') drawSetupGuide();
+    else drawDoodle();
+  }
 }
 
 function drawDoodle() {
@@ -980,6 +1019,24 @@ function traceReference(ctx, fit) {
 function fullMapping(width, height) {
   return {scale:Math.min(width,height), x:width/2, y:height/2};
 }
+function trainingShape(shape, span, x = 0, y = 0) {
+  const angle = shape === 'square' ? Math.PI/4 : shape === 'rectangle' ? 0 : -Math.PI/2;
+  const basis = {shape,x:0,y:0,r:1,angle};
+  const bounds = inkBounds([],basis);
+  const radius = span / Math.max(bounds.right-bounds.left,bounds.bottom-bounds.top);
+  return {...basis,r:radius,x:x-(bounds.left+bounds.right)*radius/2,y:y-(bounds.top+bounds.bottom)*radius/2};
+}
+function drawSetupGuide() {
+  const {width,height} = setupGuide.getBoundingClientRect();
+  if (!width || !height) return;
+  const ratio = Math.min(devicePixelRatio || 1,2.5);
+  setupGuide.width = Math.round(width*ratio);
+  setupGuide.height = Math.round(height*ratio);
+  const ctx = setupGuide.getContext('2d');
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+  const span = Math.min(width,height) * pref.guideSize / 100;
+  paintGuide(ctx,trainingShape(pref.shape,span,width/2,height/2),pref.scene,{scale:1,x:0,y:0});
+}
 function fitMapping(strokes, fit, region, maximum) {
   const box = inkBounds(strokes,fit);
   const spanX = Math.max(.0001,box.right-box.left), spanY = Math.max(.0001,box.bottom-box.top);
@@ -1004,12 +1061,15 @@ function currentScene() {
   return state === 'replay' ? playback.record : state === 'result' ? completed : round;
 }
 function resizeCanvas() {
-  if (state === 'setup') return;
+  if (state === 'setup') {
+    if (pref.mode === 'training') drawSetupGuide();
+    return;
+  }
   const w = ink.clientWidth, h = ink.clientHeight;
   if (!w || !h) return;
   const ratio = Math.min(devicePixelRatio || 1,2.5);
   if (!viewport || viewport.w !== w || viewport.h !== h || viewport.ratio !== ratio) {
-    for (const c of [ink,overlay]) { c.width = Math.round(w*ratio); c.height = Math.round(h*ratio); }
+    for (const c of [ink,overlay,guideCanvas]) { c.width = Math.round(w*ratio); c.height = Math.round(h*ratio); }
     viewport = {w,h,ratio};
   }
   redraw();
@@ -1090,8 +1150,25 @@ function paintComparison(ctx, record, transform) {
   ctx.stroke();
   ctx.setLineDash([]);
 }
+function paintGuide(ctx, guide, scene, transform) {
+  const [x,y] = screenPoint([guide.x,guide.y],transform);
+  ctx.save();
+  traceReference(ctx,{...guide,x,y,r:guide.r*transform.scale});
+  ctx.setLineDash([8,8]);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = scene === 'studio' || scene === 'paper' ? '#fff9' : '#15101ac0';
+  ctx.stroke();
+  ctx.globalAlpha = .66;
+  ctx.lineWidth = 2.3;
+  ctx.strokeStyle = referenceColors[scene];
+  ctx.stroke();
+  ctx.restore();
+}
 function redraw() {
   clearLayer(pigment);
+  clearLayer(guideLayer);
   const record = currentScene();
   if (!record) return;
   const strokes = record.strokes;
@@ -1100,6 +1177,10 @@ function redraw() {
   mapping = layoutFit && strokes.length
     ? fitMapping(strokes,record.fit,visibleRegion(),nominal*1.32)
     : fullMapping(viewport.w,viewport.h);
+  if (record.mode === 'training' && state !== 'result') {
+    const guide = state === 'replay' ? record.fit : record.guide;
+    if (guide) paintGuide(guideLayer,guide,record.scene,mapping);
+  }
   magicQueue = [];
   if (state === 'replay') {
     playback.stroke = 0; playback.point = 1; playback.progress = 0;
@@ -1181,7 +1262,7 @@ function updateScreen(focus = true) {
   game.hidden = state === 'setup';
   const result = state === 'result', paused = state === 'menu';
   const quick = result && quickResult;
-  $('quickResultCard').hidden = !quick;
+  updateResultHud();
   drawer.hidden = !((result && !dismissed && !quick) || paused);
   $('scoreCard').hidden = !result;
   $('pauseCard').hidden = !paused;
@@ -1213,26 +1294,44 @@ function updateScreen(focus = true) {
   }
 }
 
+function updateResultHud() {
+  const drawing = state === 'drawing';
+  $('quickResultCard').hidden = !(quickResult || drawing && carriedScore);
+  $('lastResult').hidden = !completed || !(drawing || state === 'result' && (quickResult || dismissed));
+  if (completed) $('lastResult').setAttribute('aria-label','Show last result, ' + completed.score + ' percent');
+}
 function cancelRetry() {
   if (retryTimer !== null) clearTimeout(retryTimer);
   retryTimer = null;
+  retryAt = 0;
   quickResult = false;
 }
-function newRound(retryCount = 1, keepReview = false) {
+function clearCarriedScore() {
+  if (scoreLingerTimer !== null) clearTimeout(scoreLingerTimer);
+  scoreLingerTimer = null;
+  carriedScore = false;
+}
+function newRound(retryCount = 1, carryScore = false, guide = null) {
   cancelRetry();
+  clearCarriedScore();
+  carriedScore = carryScore;
+  reviewingFromPad = false;
   sound.end();
-  round = {...pref, strokes:[], count:retryCount, started:null};
-  if (!keepReview) completed = null;
+  round = {...pref, strokes:[], count:retryCount, started:null, guide:null};
+  if (round.mode === 'training') round.guide = guide || trainingShape(round.shape,round.guideSize/100);
   playback = null;
   active = null; idleControls = false; dismissed = false; comparison = true;
   $('showComparison').checked = true;
   particles = []; magicQueue = []; celebrationUntil = 0;
   state = 'drawing';
   updateScreen();
-  if (!keepReview) $('announcer').textContent = 'Draw a ' + shapeNames[round.shape].toLowerCase() + '.';
+  const name = shapeNames[round.shape].toLowerCase();
+  if (!carryScore) $('announcer').textContent = round.guide ? 'Trace the ' + name + ' guide.' : 'Draw a ' + name + '.';
 }
 function returnHome() {
   cancelRetry();
+  clearCarriedScore();
+  reviewingFromPad = false;
   sound.end();
   sound.cancelResult();
   active = null; particles = []; magicQueue = []; celebrationUntil = 0;
@@ -1247,6 +1346,7 @@ function clearAttempt() {
 }
 function pauseDrawing() {
   if (state !== 'drawing' || active) return;
+  clearCarriedScore();
   menuReturn = 'drawing';
   state = 'menu';
   $('pauseMessage').textContent = 'Keep drawing to continue this try. Start over to apply new settings.';
@@ -1269,7 +1369,9 @@ function pointFor(event, id, t) {
   return [(x-mapping.x)/mapping.scale,(y-mapping.y)/mapping.scale,Math.max(0,t-round.started)];
 }
 function pointerDown(event) {
-  if (state !== 'drawing' || active || event.button !== 0) return;
+  if (active || event.button !== 0) return;
+  if (quickResult && performance.now() >= retryAt && !document.hidden) advanceResult(true);
+  if (state !== 'drawing') return;
   event.preventDefault();
   ink.setPointerCapture(event.pointerId);
   if (round.started === null) round.started = pointerTime(event);
@@ -1277,6 +1379,13 @@ function pointerDown(event) {
   round.strokes.push(active.points);
   active.points.push(pointFor(event,event.pointerId,pointerTime(event)));
   $('multiActions').hidden = true;
+  if (carriedScore && scoreLingerTimer === null) {
+    scoreLingerTimer = setTimeout(() => {
+      clearCarriedScore();
+      updateResultHud();
+      if (document.activeElement === $('holdScore')) $('lastResult').focus({preventScroll:true});
+    },500);
+  }
   sound.begin(round.pen);
 }
 function addPoint(event, force = false) {
@@ -1319,7 +1428,7 @@ function pointerEnd(event, canceled = false) {
   if (canceled || progress*mapping.scale < 3) {
     round.strokes.pop();
     if (!round.strokes.length) round.started = null;
-    if (!canceled && !round.strokes.length && completed) {
+    if (!canceled && !round.strokes.length && carriedScore) {
       holdResult();
       return;
     }
@@ -1329,7 +1438,7 @@ function pointerEnd(event, canceled = false) {
   }
   const lastPointTime = round.strokes.at(-1).at(-1)[2];
   const ms = Math.max(1,Math.ceil(lastPointTime),Math.round(pointerTime(event)-round.started));
-  const result = fitDrawing(round.strokes,round.shape);
+  const result = fitDrawing(round.strokes,round.shape,round.guide);
   if (round.mode === 'multi' && (result.score < round.multiTarget || !result.near)) {
     idleControls = true;
     $('multiActions').hidden = false;
@@ -1337,6 +1446,7 @@ function pointerEnd(event, canceled = false) {
   }
   const record = makeRecord(result,ms);
   storeRecord(record);
+  sound.unlock();
   showResult(record);
 }
 
@@ -1387,11 +1497,21 @@ function resultKind(record) {
 function hasPracticeRetry(record) {
   return record.mode === 'practice' && record.score < record.target && record.attempt < record.allowed;
 }
-function advanceResult() {
-  const sameChallenge = ['shape','mode','scene','pen','width','attempts','practiceTarget']
+function advanceResult(automatic = false) {
+  const sameChallenge = ['shape','mode','scene','pen','width','attempts','practiceTarget','multiTarget','guideSize']
     .every(key => round[key] === pref[key]);
+  if (reviewingFromPad) {
+    if (!round.strokes.length && !sameChallenge) {
+      newRound();
+      return;
+    }
+    reviewingFromPad = false;
+    state = 'drawing';
+    updateScreen();
+    return;
+  }
   const nextTry = sameChallenge && hasPracticeRetry(completed) ? completed.attempt+1 : 1;
-  newRound(nextTry,true);
+  newRound(nextTry,automatic,sameChallenge ? round.guide : null);
 }
 function presentResult() {
   const record = completed;
@@ -1412,7 +1532,7 @@ function presentResult() {
     $('attemptLabel').textContent = 'Try ' + record.attempt + ' of ' + record.allowed + ' · ' +
       (record.score >= record.target ? 'Target reached' : record.target + '% target');
   }
-  $('again').textContent = hasPracticeRetry(record) ? 'Next try' : 'Draw again';
+  $('again').textContent = reviewingFromPad ? 'Back to drawing' : hasPracticeRetry(record) ? 'Next try' : 'Draw again';
   if (innerWidth <= 640) $('drawerDetails').open = false;
   else $('drawerDetails').open = true;
   drawer.scrollTop = 0;
@@ -1421,21 +1541,33 @@ function presentResult() {
   $('announcer').textContent = record.score + ' percent. ' + $('drawerHeading').textContent + next;
 }
 function holdResult() {
+  if (!completed || state !== 'drawing' && state !== 'result') return;
+  if (state === 'drawing') {
+    reviewingFromPad = true;
+    if (active) pointerEnd({pointerId:active.id},true);
+  }
   cancelRetry();
+  clearCarriedScore();
   particles = []; magicQueue = []; celebrationUntil = 0;
   presentResult();
 }
 function showResult(record) {
+  clearCarriedScore();
+  reviewingFromPad = false;
   completed = {...record,strokes:round.strokes};
   quickResult = pref.autoRetry && !document.hidden;
   presentResult();
   const kind = resultKind(record);
   sound.result(record.pen,kind,quickResult && record.score < 97);
   if (kind === 'perfect') celebrate();
-  if (quickResult) retryTimer = setTimeout(() => {
-    if (document.hidden) holdResult();
-    else advanceResult();
-  },retryDelay(record.score));
+  if (quickResult) {
+    const delay = retryDelay(record.score);
+    retryAt = performance.now()+delay;
+    retryTimer = setTimeout(() => {
+      if (document.hidden) holdResult();
+      else advanceResult(true);
+    },delay);
+  }
 }
 
 function renderHistory() {
@@ -1573,8 +1705,24 @@ $('start').addEventListener('click',() => {
   sound.unlock();
   newRound();
 });
-$('again').addEventListener('click',advanceResult);
+$('practiceBoard').addEventListener('pointerdown',event => {
+  if (state !== 'setup' || event.button !== 0 || $('start').contains(event.target)) return;
+  const preview = pref.mode === 'training' ? setupGuide.getBoundingClientRect() : null;
+  sound.unlock();
+  newRound();
+  if (preview?.width && preview?.height) {
+    const pad = ink.getBoundingClientRect();
+    const x = preview.left + preview.width/2 - pad.left;
+    const y = preview.top + preview.height/2 - pad.top;
+    const span = Math.min(preview.width,preview.height)*round.guideSize/100;
+    round.guide = trainingShape(round.shape,span/mapping.scale,(x-mapping.x)/mapping.scale,(y-mapping.y)/mapping.scale);
+    redraw();
+  }
+  pointerDown(event);
+});
+$('again').addEventListener('click',() => advanceResult());
 $('holdScore').addEventListener('click',holdResult);
+$('lastResult').addEventListener('click',holdResult);
 $('home').addEventListener('click',returnHome);
 $('restart').addEventListener('click',clearAttempt);
 $('resume').addEventListener('click',resumeDrawing);
@@ -1584,7 +1732,10 @@ $('openMenu').addEventListener('click',() => {
   else pauseDrawing();
 });
 $('drawerClose').addEventListener('click',() => {
-  if (state === 'result') { dismissed = true; updateScreen(); }
+  if (state === 'result') {
+    if (reviewingFromPad) advanceResult();
+    else { dismissed = true; updateScreen(); }
+  }
   else resumeDrawing();
 });
 $('showComparison').addEventListener('input',event => {
@@ -1622,7 +1773,10 @@ addEventListener('keydown',event => {
   else if (state === 'drawing') pauseDrawing();
   else if (state === 'menu') resumeDrawing();
   else if (quickResult) holdResult();
-  else if (state === 'result') { dismissed = !dismissed; updateScreen(); }
+  else if (state === 'result') {
+    if (reviewingFromPad) advanceResult();
+    else { dismissed = !dismissed; updateScreen(); }
+  }
   else if (state === 'replay') exitReplay();
 });
 document.addEventListener('visibilitychange',() => {
@@ -1632,6 +1786,7 @@ document.addEventListener('visibilitychange',() => {
   if (quickResult) holdResult();
   if (state === 'replay' && !playback.paused && !playback.done) toggleReplay();
 });
+completed = orderedRecords(stored,'last')[0] ?? null;
 updateScreen(false);
 
 </script>
